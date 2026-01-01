@@ -16,11 +16,13 @@ spec:
     spec:
       imagePullSecrets:
       - name: dockerhub-secret
+      volumes:
+      - name: bar-storage
+        persistentVolumeClaim:
+          claimName: ace-bar-store
       containers:
       - name: ace-container
-        # Use custom image built in Minikube
-        image: my-custom-ace:v1
-        imagePullPolicy: Never
+        image: moiz3388/ace13:latest
         env:
         - name: LICENSE
           value: "accept"
@@ -31,16 +33,20 @@ spec:
           limits:
             cpu: "500m"
             memory: "1Gi"
+        volumeMounts:
+        - name: bar-storage
+          mountPath: /home/aceuser/bars
         command: ["/bin/bash", "-c"]
         args:
         - |
           source /opt/ibm/ace-*/server/bin/mqsiprofile
+          echo "Starting Pod..."
           mqsicreatebroker PROD
           mqsistart PROD
           mqsicreateexecutiongroup PROD -e prodserver
           echo "Deploying BAR file..."
-          # Deploy from local image path
-          mqsideploy PROD -e prodserver -a /home/aceuser/BVSRegFix2.bar -m -w 600
+          # Deploy from PVC mount path
+          mqsideploy PROD -e prodserver -a /home/aceuser/bars/BVSRegFix2.bar -w 600
           echo "Broker PROD and Server prodserver started and BAR deployed."
           # Keep container alive
           tail -f /dev/null
