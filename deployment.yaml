@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ace-deployment
+  labels:
+    app: ace-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ace-app
+  template:
+    metadata:
+      labels:
+        app: ace-app
+    spec:
+      imagePullSecrets:
+      - name: dockerhub-secret
+      containers:
+      - name: ace-container
+        image: moiz3388/ace13:latest
+        env:
+        - name: LICENSE
+          value: "accept"
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          source /opt/ibm/ace-*/server/bin/mqsiprofile
+          mqsicreatebroker PROD
+          mqsistart PROD
+          mqsicreateexecutiongroup PROD -e prodserver
+          echo "Broker PROD and Server prodserver started."
+          # Keep container alive
+          tail -f /dev/null
