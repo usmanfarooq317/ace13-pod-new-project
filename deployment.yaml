@@ -18,7 +18,9 @@ spec:
       - name: dockerhub-secret
       containers:
       - name: ace-container
-        image: moiz3388/ace13:latest
+        # Use custom image built in Minikube
+        image: my-custom-ace:v1
+        imagePullPolicy: Never
         env:
         - name: LICENSE
           value: "accept"
@@ -36,6 +38,9 @@ spec:
           mqsicreatebroker PROD
           mqsistart PROD
           mqsicreateexecutiongroup PROD -e prodserver
-          echo "Broker PROD and Server prodserver started."
+          echo "Deploying BAR file..."
+          # Deploy from local image path
+          mqsideploy PROD -e prodserver -a /home/aceuser/BVSRegFix2.bar -m -w 600
+          echo "Broker PROD and Server prodserver started and BAR deployed."
           # Keep container alive
           tail -f /dev/null
